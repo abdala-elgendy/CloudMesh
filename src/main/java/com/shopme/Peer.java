@@ -38,8 +38,9 @@ public class Peer {
 
                else if(order==2) {
                    System.out.println("give me file name");
-                   String fileName=sc.nextLine();
-                   if(fileName!=null){
+                   String fileName="temp";
+                   fileName=sc.next();
+                   if(fileName!="temp"){
                        System.out.println("sending "+fileName);
                        out.println("QUERY " + InetAddress.getLocalHost().getHostAddress() + " "+fileName);
                        String response = in.readLine();
@@ -51,11 +52,16 @@ public class Peer {
                    }
 
                }
-             else if(order==3)break;
+             else if(order==3){
+                 out.println("close " +InetAddress.getLocalHost().getHostAddress() + " temp");
+                   System.out.println("closing ");
+                 break;
+               }
             else {
                    System.out.println("give me correct input ");
-               }
 
+               }
+               System.out.println("checking for keeping alive");
             // Keep alive
             new Timer().schedule(new TimerTask() {
                 @Override
@@ -70,6 +76,7 @@ public class Peer {
             }, 0, 30000); // Send keep alive every 30 seconds
            }
         } catch (IOException e) {
+            System.out.println("error happend");
             e.printStackTrace();
         }
     }

@@ -11,7 +11,7 @@ public class CentralServer {
     private static Map<String, Long> peerLastSeen = new HashMap<>();
     private static final String SERVER_IP = "127.0.0.1";
     private static final int SERVER_PORT = 5000;
-    private static final int THREAD_POOL_SIZE = 10; // Adjust based on your needs
+    private static final int THREAD_POOL_SIZE = 10;
     private static ExecutorService threadPool = Executors.newFixedThreadPool(THREAD_POOL_SIZE);
 
 
@@ -22,7 +22,7 @@ public class CentralServer {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
 
-                System.out.println("connected "+ clientSocket.getInetAddress());
+                System.out.println("connected "+ clientSocket.getPort());
               threadPool.execute(new ClientHandler(clientSocket));
             }
         } catch (IOException e) {
@@ -40,18 +40,23 @@ public class CentralServer {
 
         @Override
         public void run() {
-
+            System.out.println(clientSocket.getInetAddress() + " " + clientSocket.getPort());
             try (BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                  PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
                 // out.println("hello");
-
+                checkPeerStatus();
                while(true){ String request = in.readLine();
                 if (request == null) {
-                    request = "now";
+break;
                 }
                 String[] tokens = request.split(" ");
 
                 String command = tokens[0];
+                   System.out.println(tokens.length + " " + command);
+                   if(command=="close") {
+                       System.out.println("clossing the thread");
+                       break;
+                   }
                 String peerIP = tokens[1];
 
                 switch (command) {
@@ -78,9 +83,13 @@ public class CentralServer {
                 System.out.println("error handling client request");
                 e.printStackTrace();
             }
-            finally{
-                threadPool.shutdown();
-            }
+
+                try {
+                    clientSocket.close();
+                } catch (IOException e) {
+                    System.err.println("Error closing client socket: " + e.getMessage());
+                }
+
         }
 
 
@@ -113,6 +122,6 @@ public class CentralServer {
                     }
                 }
             }
-        }, 0, 60000); // Check every 60 seconds
+        }, 0, 300000); // Check every 300 seconds
     }
 }
